@@ -12,93 +12,267 @@ Por favor, escribe en impersonal las respuestas.
 </prompt>
 ----
 -->
-# TEMA 6. Genericidad
+TEMA 6. Genericidad
+1. Empleando void\ en C o Object en Java, pon un ejemplo de una estructura de datos, que empleando un array primitivo, permita alojar cualquier tipo de dato.*
+En C (void\*)
+c
+typedef struct {
+    void* datos[100];
+    int size;
+} Lista;
 
-## 1. Empleando `void*` en C o `Object` en Java, pon un ejemplo de una estructura de datos, que empleando un array primitivo, permita alojar cualquier tipo de dato.
+void add(Lista* l, void* elemento) {
+    l->datos[l->size++] = elemento;
+}
+En Java (Object)
+java
+class Lista {
+    private Object[] datos = new Object[100];
+    private int size = 0;
 
-### Respuesta
+    public void add(Object o) {
+        datos[size++] = o;
+    }
 
-## 2. Brevemente, ¿Qué significa la **programación genérica**? ¿Es el ejemplo anterior un ejemplo básico de programación genérica? 
+    public Object get(int i) {
+        return datos[i];
+    }
+}
+2. Brevemente, ¿Qué significa la programación genérica? ¿Es el ejemplo anterior un ejemplo básico de programación genérica?
+La programación genérica permite escribir código que funciona con distintos tipos, sin duplicarlo y manteniendo seguridad de tipos.
 
-### Respuesta
+El ejemplo anterior no es programación genérica real, porque usa void* u Object, lo que pierde el tipo concreto y obliga a hacer downcasting. Es solo una simulación primitiva.
 
-## 3. Indica los problemas respecto al chequeo de tipos, de emplear `void*` o `Object` cuando se crean estructuras de datos genéricas. 
+3. Indica los problemas respecto al chequeo de tipos, de emplear void\ o Object cuando se crean estructuras de datos genéricas.*
+No hay chequeo de tipos en compilación.
 
-### Respuesta
+Se permite insertar cualquier cosa, incluso por error.
 
+Requiere downcasting, que puede fallar en tiempo de ejecución.
 
-## 4. Vamos entonces con mecanismos de mejora de la programación genérica ¿Qué son los **parámetros de tipo**? 
+Mayor probabilidad de errores y menor legibilidad.
 
-### Respuesta
+4. Vamos entonces con mecanismos de mejora de la programación genérica. ¿Qué son los parámetros de tipo?
+Son variables de tipo que se declaran entre < > y permiten que una clase o método trabaje con un tipo concreto sin perder seguridad.
 
+Ejemplo:
 
-## 5. En Java existe "generics", en C++ existen "templates". Pon un ejemplo de uso de programación genérica en ambos, instanciando una lista o vector dinámico que solo admite `String`. Introduce valores, y luego haz un recorrido de ellos mostrando cómo cada elemento es del tipo concreto con seguridad.
+java
+class Caja<T> {
+    private T valor;
+}
+T es un parámetro de tipo.
 
-### Respuesta
+5. Ejemplo de programación genérica en Java y C++ con listas que solo admiten String.
+Java
+java
+List<String> lista = new ArrayList<>();
+lista.add("Hola");
+lista.add("Mundo");
 
+for (String s : lista) {
+    System.out.println(s.toUpperCase());
+}
+C++
+cpp
+#include <vector>
+#include <string>
+#include <iostream>
 
-## 6. Sobre el funcionamiento de la programación genérica. ¿Qué hace el compilador cuando se instancia una clase que tiene parámetros de tipo? ¿Hace lo mismo C++ y Java? ¿Qué es el "type erasure" de Java y la "instanciación de plantillas" de C++?
+std::vector<std::string> v;
+v.push_back("Hola");
+v.push_back("Mundo");
 
-### Respuesta
+for (const std::string& s : v) {
+    std::cout << s << std::endl;
+}
+Ambos garantizan que solo se aceptan String.
 
+6. ¿Qué hace el compilador al instanciar una clase genérica? ¿Hace lo mismo C++ y Java? ¿Qué es type erasure y qué es instanciación de plantillas?
+Java (type erasure)  
+El compilador elimina los tipos genéricos y los sustituye por Object (o el bound).
+No genera código nuevo por cada tipo.
 
-## 7. Vamos a crear una nueva clase con parámetros de tipo. Define en Java una clase `Par`, que permite alojar dos valores de tipos diferentes. Incluye un constructor y un getter para cada tipo. Pon un ejemplo de uso de ese `Par`, por ejemplo para especificar el tipo de retorno de una función que devuelve en un `Par` la media y desviación típica de un array de `double`. 
+C++ (template instantiation)  
+El compilador genera una copia del código para cada tipo concreto.
+Es expansión en tiempo de compilación.
 
-### Respuesta
+7. Clase Par<T,U> en Java y ejemplo de uso.
+java
+class Par<A, B> {
+    private final A primero;
+    private final B segundo;
 
+    public Par(A primero, B segundo) {
+        this.primero = primero;
+        this.segundo = segundo;
+    }
 
-## 8. En Java, se pueden declarar parámetros de tipo también a nivel de método, no solo a nivel de clase. Pon un ejemplo con un método genérico `seleccionaUno`, que pasados dos objetos del mismo tipo, te devuelva aleatoriamente uno de ellos. Muestra la diferencia de definirlo con dos `Object`, a definirlo con dos parámetros de tipo, en terminos de (i) evitar downcasting y (ii) forzar que ambos objetos sean del mismo tipo. 
+    public A getPrimero() { return primero; }
+    public B getSegundo() { return segundo; }
+}
+Ejemplo de uso:
 
-### Respuesta
+java
+public Par<Double, Double> calcularStats(double[] datos) {
+    double suma = 0;
+    for (double d : datos) suma += d;
+    double media = suma / datos.length;
 
+    double var = 0;
+    for (double d : datos) var += Math.pow(d - media, 2);
+    double desviacion = Math.sqrt(var / datos.length);
 
-## 9. ¿Se pueden establecer restricciones en los parámetros de tipo? Por ejemplo, si quiero definir un tipo genérico `<T>`, ¿puedo decir que tenga que ser, al menos, un número para poder tratarlo como tal? Pon un ejemplo en Java de un `Punto` con dos coordenadas, metodos `getX`, `getY`, y una función `calcularDistanciaA` otro `Punto`. Permite que esas coordenadas sean cualquier tipo de número. Pon dos soluciones: una simplemente creando coordenadas de tipo `Number` y otra añadiendo generics para reforzar el chequeo de tipos y saber exactamente con qué tipo de número trabaja el `Punto`. En este caso y respecto al "type erasure", ¿cuál es el tipo final tras la compilación?
+    return new Par<>(media, desviacion);
+}
+8. Método genérico seleccionaUno y comparación con Object.
+Con Object (malo)
+java
+public Object seleccionaUno(Object a, Object b) {
+    return Math.random() < 0.5 ? a : b;
+}
+Problemas:
 
-### Respuesta
+No garantiza que a y b sean del mismo tipo.
 
+Requiere downcasting al usarlo.
 
-## 10. Sobre las soluciones anteriores. Si bien ambas permiten trabajar con distintos tipos de número sin duplicar la clase `Punto`, reflexiona sobre el refuerzo del chequeo de tipos con generics. ¿Permiten ambas crear un punto con una coordenada de tipo entero y la otra coordenada de tipo real? ¿Qué tipo devuelve el `getX` con la solucion sin generics y qué tipo devuelve el que tiene la solución con generics?
+Con genéricos (bueno)
+java
+public <T> T seleccionaUno(T a, T b) {
+    return Math.random() < 0.5 ? a : b;
+}
+Ventajas:
 
-### Respuesta
+Ambos parámetros deben ser del mismo tipo T.
 
+No hay downcasting.
 
-## 11. Hagamos un ejemplo avanzado. El siguiente código, con interfaz `Punto`, que define un método `calcularDistanciaA(Punto p)`, junto con las implementaciones `Punto2D` y `Punto3D`. Añade generics para asegurarnos que la sobreescritura del método calcular distancia a otro `Punto` siempre es sobre un `Punto` del mismo tipo, evitando `instanceof` y el downcasting.
-```java
-public interface Punto { 
-    public double distanciaA(Punto p); 
-} 
+Seguridad en compilación.
 
-public class Punto2D implements Punto { 
-     private final double x, y; 
-     public Punto2D(double x, double y) { 
-        this.x = x; this.y = y; 
-    } 
+9. Restricciones en parámetros de tipo. Punto con Number y Punto<T extends Number>.
+Solución 1: usando Number
+java
+class Punto {
+    private Number x, y;
 
-    @Override 
-    public double distanciaA(Punto p) { 
-        if (p instanceof Punto2D) { 
-            Punto2D p2d = (Punto2D) p; 
-            return Math.sqrt(Math.pow(x - p2d.x, 2) 
-                    + Math.pow(y - p2d.y, 2)); 
-        } else { 
-            throw new RuntimeException("p debe ser Punto 2D"); 
-        } 
-    } 
-} 
-public class Punto3D implements Punto { 
-    // Igual que Punto2D, pero con tres coordenadas
-    ...
-} 
-```
+    public Punto(Number x, Number y) {
+        this.x = x; this.y = y;
+    }
 
-### Respuesta
+    public double distanciaA(Punto p) {
+        double dx = x.doubleValue() - p.x.doubleValue();
+        double dy = y.doubleValue() - p.y.doubleValue();
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+}
+Solución 2: usando generics
+java
+class Punto<T extends Number> {
+    private T x, y;
 
+    public Punto(T x, T y) {
+        this.x = x; this.y = y;
+    }
 
-## 12. Dado que `String` es subtipo de `Object`, ¿significa eso que `List<String>` es subtipo de `List<Object>`? ¿Y que `String[]` es subtipo de `Object[]`? Razona por qué la respuesta es diferente en cada caso y qué problema en tiempo de ejecución puede aparecer con los arrays. A partir de estos ejemplos, define qué significa que un tipo genérico sea **covariante**, **contravariante** o **invariante** respecto a su parámetro de tipo.
+    public double distanciaA(Punto<T> p) {
+        double dx = x.doubleValue() - p.x.doubleValue();
+        double dy = y.doubleValue() - p.y.doubleValue();
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+}
+Tipo final tras compilación (type erasure)
+T se convierte en Number.
 
-### Respuesta
+10. Reflexión sobre el chequeo de tipos.
+Con la versión sin genéricos (Number), puedes crear:
 
+java
+new Punto(3, 4.5); // permitido
+No hay restricción entre coordenadas.
 
-## 13. Java permite recuperar covarianza y contravarianza en tipos genéricos de forma controlada mediante **wildcards**. ¿Qué es un wildcard (`?`)? Muestra la diferencia entre `List<? extends T>` y `List<? super T>`, indicando en qué casos se usa cada uno. Pon dos ejemplos: (i) un método que reciba una lista de números y calcule su suma, usando `? extends`; (ii) un método que reciba una lista y le añada varios números enteros, usando `? super`.
+Con generics:
 
-### Respuesta
+java
+new Punto<Integer>(3, 4.5); // NO permitido
+Ambos deben ser del mismo tipo T.
+
+getX():
+
+Sin generics → devuelve Number
+
+Con generics → devuelve T (tipo exacto)
+
+11. Reescritura del ejemplo Punto2D/Punto3D usando generics para evitar instanceof.
+java
+public interface Punto<T extends Punto<T>> {
+    double distanciaA(T p);
+}
+
+public class Punto2D implements Punto<Punto2D> {
+    private final double x, y;
+
+    public Punto2D(double x, double y) {
+        this.x = x; this.y = y;
+    }
+
+    @Override
+    public double distanciaA(Punto2D p) {
+        return Math.sqrt(Math.pow(x - p.x, 2) + Math.pow(y - p.y, 2));
+    }
+}
+
+public class Punto3D implements Punto<Punto3D> {
+    private final double x, y, z;
+
+    public Punto3D(double x, double y, double z) {
+        this.x = x; this.y = y; this.z = z;
+    }
+
+    @Override
+    public double distanciaA(Punto3D p) {
+        return Math.sqrt(Math.pow(x - p.x, 2)
+                       + Math.pow(y - p.y, 2)
+                       + Math.pow(z - p.z, 2));
+    }
+}
+Ya no hay instanceof ni downcasting.
+
+12. ¿List<String> es subtipo de List<Object>? ¿Y String[] de Object[]? Covarianza, contravarianza e invariancia.
+List<String> NO es subtipo de List<Object>  
+→ Los genéricos en Java son invariantes.
+
+String[] SÍ es subtipo de Object[]  
+→ Los arrays son covariantes, pero esto causa errores en tiempo de ejecución:
+
+java
+Object[] arr = new String[10];
+arr[0] = 3; // ERROR en tiempo de ejecución
+Definiciones:
+Covariante: A es subtipo de B ⇒ F<A> es subtipo de F<B>.
+
+Contravariante: A es subtipo de B ⇒ F<B> es subtipo de F<A>.
+
+Invariante: No hay relación de subtipado.
+
+13. Wildcards en Java. ? extends y ? super.
+? significa “algún tipo desconocido”.
+
+? extends T → covariante, puedes leer, no puedes escribir.
+
+? super T → contravariante, puedes escribir T, no puedes leer con tipo exacto.
+
+(i) Lista de números y suma (? extends Number)
+java
+double suma(List<? extends Number> lista) {
+    double s = 0;
+    for (Number n : lista) s += n.doubleValue();
+    return s;
+}
+(ii) Añadir enteros (? super Integer)
+java
+void insertarEnteros(List<? super Integer> lista) {
+    lista.add(1);
+    lista.add(2);
+    lista.add(3);
+}
